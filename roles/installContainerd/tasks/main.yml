@@ -1,0 +1,62 @@
+---
+- name: stop docker service first whether it install or not
+  shell: systemctl stop docker
+  ignore_errors: True
+
+- name: stop containerd service first whether it install or not
+  shell: systemctl stop containerd
+  ignore_errors: True
+
+- name: active overlay setting module for containerd
+  shell: modprobe overlay
+
+- name: persist overlay setting module for containerd
+  shell: echo "overlay" > /etc/modules-load.d/containerd.conf
+
+- name: active br_netfilter setting module for containerd
+  shell: modprobe br_netfilter
+
+- name: persist ipv4 & ipv6 network setting module for containerd
+  shell: echo "br_netfilter" > /etc/modules-load.d/containerd.conf
+
+- name: show all active system modules
+  shell: sysctl --system
+
+#- name: download cri-containerd-cni-1.5.7 for ubuntu
+#  shell: wget https://github.com/containerd/containerd/releases/download/v1.5.7/cri-containerd-cni-1.5.7-linux-amd64.tar.gz
+
+- name: install cri-containerd-cni-1.5.7
+  shell: tar --overwrite-dir  -C / -zxvf /tmp/cri-containerd-cni-1.5.7-linux-amd64.tar.gz
+  args:
+    warn: false
+
+- name: install nerdctl-0.12.1
+  shell: tar Cxzvvf /usr/bin /tmp/nerdctl-0.12.1-linux-amd64.tar.gz
+  args:
+    warn: false
+
+- name: create containerd config directory
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: init containerd config file
+  shell: containerd config default | sudo tee /etc/containerd/config.toml
+
+- name: write new containerd config
+  template:
+    src: config.toml.j2
+    dest: /etc/containerd/config.toml
+
+- name: reload containerd
+  shell: systemctl daemon-reload
+
+- name: enable and start containerd now
+  shell: systemctl enable --now containerd
+
+- name: pull sendbox pause image
+  shell: nerdctl -n k8s.io pull registry.aliyuncs.com/google_containers/pause:3.5
+
+- name: tag sendbox pause image
+  shell: nerdctl -n k8s.io tag registry.aliyuncs.com/google_containers/pause:3.5  k8s.gcr.io/pause:3.5
+  ignore_errors: True

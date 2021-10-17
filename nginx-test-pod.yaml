@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-1
+  labels:
+    app: nginx
+spec:
+  nodeName: ubuntu32
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80

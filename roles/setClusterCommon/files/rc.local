@@ -1,0 +1,3 @@
+#!/bin/sh
+iptables -P FORWARD ACCEPT
+swapoff -a

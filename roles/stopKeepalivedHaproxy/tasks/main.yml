@@ -1,0 +1,11 @@
+---
+- name: rm keepalived docker container
+  shell: ctr c rm $(ctr c ls | grep "keepalived"  | awk '{print $1}')
+  ignore_errors: True
+
+- name: rm haproxy docker container
+  shell: ctr c rm $(ctr c ls |  grep "haproxy"  | awk '{print $1}')
+  ignore_errors: True
+
+- name: restart containerd
+  shell: systemctl restart containerd
